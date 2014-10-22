@@ -16,7 +16,7 @@ get '/' do
       end
       x+=1
     end
-    "<iframe width=\"100%\" height=\"100%\" src=\"https://s3-us-west-1.amazonaws.com/cc-travis-api-doc/api_docs/#{number}/index.html\" seamless />"
+    "<iframe width=\"100%\" height=\"100%\" src=\"https://s3.amazonaws.com/cc-api-docs/#{number}/index.html\" seamless />"
   rescue => e
     "Error encountered getting latest API doc build number from travis"
   end
