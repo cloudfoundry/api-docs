@@ -3,28 +3,128 @@ require 'net/http'
 require "open-uri"
 require "json"
 
-get '/' do
-  begin
-    travis = URI.parse("https://api.travis-ci.org/repos/cloudfoundry/cloud_controller_ng/builds").read
-    parsed = JSON.parse(travis)
-    length = parsed.length
-    x = 0
-    while x < length do
-      if parsed[x]["result"]==0 && parsed[x]["event_type"]=="push" && parsed[x]["branch"] == "master"
-        number = parsed[x]["id"]
-        break
-      end
-      x+=1
+CACHED_BUILD_IDS = {
+  #194 => 41997426,
+  193 => 40945705,
+  192 => 40015178,
+  #191 => 38662058, # s3 bucket 404
+  #190 => 38069842, # s3 bucket 404
+  #189 => 37314314, # s3 bucket 404
+}
+OLDEST_CF_VERSION = CACHED_BUILD_IDS.keys.min
+OLDEST_BUILD_ID = CACHED_BUILD_IDS.values.min
+CF_VERSION_PARAM_NAME = 'version'
+CF_VERSION_COOKIE_NAME = 'cf_release_version'
+
+get '/*' do
+  cf_release_version = requested_cf_version params[CF_VERSION_PARAM_NAME], request.cookies[CF_VERSION_COOKIE_NAME]
+  # The oldest supported one will be hardcoded in the cache
+  if cf_release_version < OLDEST_CF_VERSION
+    halt 404, "Versions beyond #{OLDEST_CF_VERSION} not supported (#{cf_release_version} given)."
+  else
+    travis_build_id = cf_release_travis_build_id cf_release_version
+    if travis_build_id.nil?
+      halt 404, "Failed to get Travis build id for cf-release v#{cf_release_version}"
     end
-    "<iframe width=\"100%\" height=\"100%\" src=\"https://s3.amazonaws.com/cc-api-docs/#{number}/index.html\" seamless />"
-  rescue => e
-    "Error encountered getting latest API doc build number from travis"
+    s3_base_url = "https://s3.amazonaws.com/cc-api-docs/#{travis_build_id}"
+    path = request.path_info
+    path = "/index.html" if path == "/"
+    s3_url = s3_base_url + path
+    $stderr.puts "Request: host=#{request.host} version=#{cf_release_version} build=#{travis_build_id} path=#{request.path_info} s3=#{s3_url}"
+    begin
+      html_content = URI.parse(s3_url).read
+    rescue => e
+      halt 500, "Error encountered retrieving API docs. #{e.message}"
+    end
+    # set the cookie, if we're on the root
+    if request.path_info == "/"
+      response.set_cookie(
+        CF_VERSION_COOKIE_NAME,
+        :value => cf_release_version,
+        :domain => request.host == "localhost" ? "" : request.host,
+        :path => '/'
+      )
+    end
+    html_content.sub!(
+      '<body>',
+      '<body><p>' + version_links_html(cf_release_version, CACHED_BUILD_IDS.keys) + '</p>'
+    )
+    html_content
   end
 end
 
-def cc_sha1 cf_release_version
-  html = URI.parse("https://github.com/cloudfoundry/cf-release/tree/v#{cf_release_version}/src").read
-  html =~ /cloud_controller_ng\.git \@ (\w+)/
-  $1
+def version_links_html(current_version, all_versions)
+  all_versions.sort.map do |version|
+    version == current_version ?
+      "<strong>#{version}</strong>" : "<a href=\"/?version=#{version}\">#{version}</a>"
+  end.join(" ")
 end
 
+def requested_cf_version param_value, cookie_value
+  $stderr.puts "requested_cf_version: param_value=#{param_value} cookie_value=#{cookie_value}"
+  if (param_value.to_i rescue false) != 0
+    param_value.to_i
+  elsif (cookie_value.to_i rescue false) != 0
+    cookie_value.to_i
+  else
+    # Use the most recently known cf-release version by default
+    CACHED_BUILD_IDS.keys.max
+  end
+end
+
+def cf_release_cc_sha1 cf_release_version
+  begin
+    html = URI.parse("https://github.com/cloudfoundry/cf-release/tree/v#{cf_release_version}/src").read
+    html =~ /cloud_controller_ng\.git \@ (\w+)/
+    $1
+  rescue OpenURI::HTTPError => e
+    raise unless e.message == "404 Not Found"
+    nil
+  end
+end
+
+def cf_release_travis_build_id cf_release_version
+  # Return cached version if possible
+  return CACHED_BUILD_IDS[cf_release_version] if CACHED_BUILD_IDS[cf_release_version]
+
+  $stderr.puts "Unknown cf-release version #{cf_release_version}. Discovering..."
+  travis_build_id = discovery_build_id_for_cf_version cf_release_version
+  if travis_build_id
+    $stderr.puts "Found new release build id! #{cf_release_version} => #{travis_build_id} (caching)"
+    CACHED_BUILD_IDS[cf_release_version] = travis_build_id
+  end
+  return travis_build_id
+end
+
+def discovery_build_id_for_cf_version cf_release_version
+  release_cc_sha1 = cf_release_cc_sha1 cf_release_version
+  if release_cc_sha1.nil?
+    $stderr.puts "Failed to get cloud_controller_ng commit id for release v#{cf_release_version}."
+    return nil
+  end
+  $stderr.puts "Got cloud_controller_ng.git sha1 for cf-release v#{cf_release_version} => #{release_cc_sha1}"
+  last_build_number = nil
+  travis_build = nil
+  $stderr.puts "Searching through Travis builds for commit:#{release_cc_sha1}"
+  while travis_build.nil?
+    travis_url = "https://api.travis-ci.org/repos/cloudfoundry/cloud_controller_ng/builds" + (last_build_number.nil? ? "" : "?after_number=#{last_build_number}")
+    $stderr.puts "Travis API GET #{travis_url}"
+    travis_builds_json = URI.parse(travis_url).read
+    travis_builds = JSON.parse(travis_builds_json)
+    break unless travis_builds.size > 0
+    travis_build = travis_builds.detect { |build| build["commit"] == release_cc_sha1 }
+    if travis_build
+      $stderr.puts "Found Travis build for commit:#{release_cc_sha1}"
+      break
+    else
+      # We need to get another page of result from Travis API...
+      last_build_number = travis_builds.last["number"].to_i
+      last_build_id = travis_builds.last["id"].to_i
+      if last_build_id < OLDEST_BUILD_ID
+        $stderr.puts "Gone back further than old version build number"
+        break
+      end
+    end
+  end
+  travis_build ? travis_build["id"] : nil
+end
