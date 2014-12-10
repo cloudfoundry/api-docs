@@ -21,3 +21,10 @@ get '/' do
     "Error encountered getting latest API doc build number from travis"
   end
 end
+
+def cc_sha1 cf_release_version
+  html = URI.parse("https://github.com/cloudfoundry/cf-release/tree/v#{cf_release_version}/src").read
+  html =~ /cloud_controller_ng\.git \@ (\w+)/
+  $1
+end
+
