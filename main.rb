@@ -13,21 +13,28 @@ CACHED_BUILD_IDS = {
 }
 OLDEST_CF_VERSION = CACHED_BUILD_IDS.keys.min
 OLDEST_BUILD_ID = CACHED_BUILD_IDS.values.min
-CF_VERSION_PARAM_NAME = 'version'
 CF_VERSION_COOKIE_NAME = 'cf_release_version'
 
-get '/*' do
-  cf_release_version = requested_cf_version params[CF_VERSION_PARAM_NAME], request.cookies[CF_VERSION_COOKIE_NAME]
+get '/' do
+  # Redirect to latest known docs
+  redirect "/#{CACHED_BUILD_IDS.keys.max}/"
+end
+
+get %r{/(\d+)(/.*)?} do |version, docs_path|
+  cf_release_version = version.to_i rescue nil
+  docs_path = "/" unless docs_path
   # The oldest supported one will be hardcoded in the cache
-  if cf_release_version < OLDEST_CF_VERSION
-    halt 404, "Versions beyond #{OLDEST_CF_VERSION} not supported (#{cf_release_version} given)."
+  if cf_release_version.nil?
+    halt 400, "Invalid cf-release version given."
+  elsif cf_release_version < OLDEST_CF_VERSION
+    halt 404, "cf-release versions beyond #{OLDEST_CF_VERSION} not supported (#{cf_release_version} given)."
   else
     travis_build_id = cf_release_travis_build_id cf_release_version
     if travis_build_id.nil?
       halt 404, "Failed to get Travis build id for cf-release v#{cf_release_version}"
     end
     s3_base_url = "https://s3.amazonaws.com/cc-api-docs/#{travis_build_id}"
-    path = request.path_info
+    path = docs_path
     path = "/index.html" if path == "/"
     s3_url = s3_base_url + path
     $stderr.puts "Request: host=#{request.host} version=#{cf_release_version} build=#{travis_build_id} path=#{request.path_info} s3=#{s3_url}"
@@ -36,40 +43,24 @@ get '/*' do
     rescue => e
       halt 500, "Error encountered retrieving API docs. #{e.message}"
     end
-    # set the cookie, if we're on the root
-    if request.path_info == "/"
-      response.set_cookie(
-        CF_VERSION_COOKIE_NAME,
-        :value => cf_release_version,
-        :domain => request.host == "localhost" ? "" : request.host,
-        :path => '/'
-      )
-    end
+    # change all local HTML links to include cf-release version
+    html_content.gsub!(
+      /\bhref=\"\/"/,
+      "href=\"/#{cf_release_version}/"
+    )
     html_content.sub!(
       '<body>',
-      '<body><p>' + version_links_html(cf_release_version, CACHED_BUILD_IDS.keys) + '</p>'
+      '<body><p>' + version_links_html(cf_release_version, CACHED_BUILD_IDS.keys, docs_path) + '</p>'
     )
     html_content
   end
 end
 
-def version_links_html(current_version, all_versions)
+def version_links_html(current_version, all_versions, current_path)
   all_versions.sort.map do |version|
     version == current_version ?
-      "<strong>#{version}</strong>" : "<a href=\"/?version=#{version}\">#{version}</a>"
+      "<strong>#{version}</strong>" : "<a href=\"/#{version}#{current_path}\">#{version}</a>"
   end.join(" ")
-end
-
-def requested_cf_version param_value, cookie_value
-  $stderr.puts "requested_cf_version: param_value=#{param_value} cookie_value=#{cookie_value}"
-  if (param_value.to_i rescue false) != 0
-    param_value.to_i
-  elsif (cookie_value.to_i rescue false) != 0
-    cookie_value.to_i
-  else
-    # Use the most recently known cf-release version by default
-    CACHED_BUILD_IDS.keys.max
-  end
 end
 
 def cf_release_cc_sha1 cf_release_version

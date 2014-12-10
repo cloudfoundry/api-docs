@@ -46,7 +46,7 @@ EOF
     stub_request(:get, "https://s3.amazonaws.com/cc-api-docs/#{travis_build_id}/index.html")
       .to_return(:body => s3_api_docs_content)
 
-    get '/'
+    get '/193/'
     expect(last_response.status).to eq(200)
     expect(last_response.body).to include("Here are the docs")
     # link to 192
@@ -75,6 +75,11 @@ EOF
 
       expect(cf_release_cc_sha1(194)).to eq(cc_sha1_for_cf_release_v194)
     end
+  end
+
+  it "redirect from top page / to the latest cf-release" do
+    get '/'
+    expect(last_response.status).to eq(302)
   end
 
 end
