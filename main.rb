@@ -27,24 +27,42 @@ get '/' do
   redirect "/#{BUILD_IDS.keys.first}/"
 end
 
+get %r{/release-candidate(/.*)?} do |docs_path|
+  s3_base_url = "https://s3.amazonaws.com/cc-api-docs/release-candidate"
+  docs_path = "/" unless docs_path
+
+  html_content = fetch_html_from_s3(s3_base_url, docs_path, 'release-candidate')
+  modify_html(html_content, docs_path, 'release-candidate')
+end
+
 get %r{/(\d+)(/.*)?} do |version, docs_path|
   cf_release_version = version.to_i rescue nil
   docs_path = "/" unless docs_path
 
   travis_build_id = BUILD_IDS[cf_release_version]
   s3_base_url = "https://s3.amazonaws.com/cc-api-docs/#{travis_build_id}"
-  path = docs_path
-  path = "/index.html" if path == "/"
-  s3_url = s3_base_url + path
+
+  html_content = fetch_html_from_s3(s3_base_url, docs_path, cf_release_version)
+  modify_html(html_content, docs_path, cf_release_version)
+end
+
+def fetch_html_from_s3(s3_base_url, docs_path, cf_release_version)
+  docs_path = "/index.html" if docs_path == "/"
+  s3_url = s3_base_url + docs_path
 
   begin
+    puts "Fetching artifacts from #{s3_url}"
     html_content = URI.parse(s3_url).read
   rescue => e
     if e.message =~ /not found/i
-      halt 404, "<body>#{version_links_html(cf_release_version, BUILD_IDS.keys, docs_path)}Not Found</body>"
+      halt 404, "<body>#{version_links_html(cf_release_version, BUILD_IDS.keys, docs_path)}<br/><br/>Not Found</body>"
     end
     halt 500, 'Error encountered retrieving API docs.'
   end
+  return html_content
+end
+
+def modify_html(html_content, docs_path, cf_release_version)
   # change all local HTML links to include cf-release version
   html_content.gsub!(
     /\bhref=\"\/"/,
@@ -59,8 +77,11 @@ end
 
 def version_links_html(current_version, all_versions, current_path)
   links = all_versions.sort.map do |version|
-    version == current_version ?
-      "<strong>#{version}</strong>" : "<a href=\"/#{version}#{current_path}\">#{version}</a>"
+    link_for(version, current_version, current_path)
   end.join(" ")
-  "<p>#{links}</p>"
+  "<p>#{links}</p><br/>#{link_for('release-candidate', current_version, current_path)}"
+end
+
+def link_for(version, current_version, current_path)
+  version == current_version ? "<strong>#{version}</strong>" : "<a href=\"/#{version}#{current_path}\">#{version}</a>"
 end
