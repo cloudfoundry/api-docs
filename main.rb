@@ -59,6 +59,10 @@ get '/' do
   redirect "/#{BUILD_IDS.keys.first}/"
 end
 
+get %r{/(.+[^/])$} do |path|
+  redirect to("/#{path}/")
+end
+
 get %r{/release-candidate(/.*)?} do |docs_path|
   s3_base_url = "https://s3.amazonaws.com/cc-api-docs/release-candidate"
   docs_path = "/" unless docs_path
