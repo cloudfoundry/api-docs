@@ -115,7 +115,7 @@ def modify_html(html_content, docs_path, cf_release_version)
 end
 
 def version_links_html(current_version, all_versions, current_path)
-  links = all_versions.sort.map do |version|
+  links = all_versions.sort.reverse.map do |version|
     link_for(version, current_version, current_path)
   end.join(" ")
 
