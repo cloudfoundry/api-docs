@@ -22,6 +22,38 @@ BUILD_IDS = {
   192 => 40015178
 }
 
+def template
+  <<EOS
+<html>
+<head>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+  <script src='//code.jquery.com/jquery-2.1.3.js'></script>
+  <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js'></script>
+</head>
+<body>
+  <%= header %>
+  <%= content %>
+</body>
+</html>
+EOS
+end
+
+def header_template
+  <<EOS
+  <div class="btn-group">
+    <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-expanded='false'>
+        <%= current_version %> <span class='caret'></span>
+    </button>
+    <ul class='dropdown-menu'>
+      <%= links %>
+      <li class="divider"></li>
+      <%= release_candidate_link  %>
+    </ul>
+    <br/>
+  </div>
+EOS
+end
+
 get '/' do
   # Redirect to latest known docs
   redirect "/#{BUILD_IDS.keys.first}/"
@@ -55,7 +87,7 @@ def fetch_html_from_s3(s3_base_url, docs_path, cf_release_version)
     html_content = URI.parse(s3_url).read
   rescue => e
     if e.message =~ /not found/i
-      halt 404, "<body>#{version_links_html(cf_release_version, BUILD_IDS.keys, docs_path)}<br/><br/>Not Found</body>"
+      halt 404, erb(template, locals: { header: version_links_html(cf_release_version, BUILD_IDS.keys, docs_path),content: "Not Found" }) #"<body>#{version_links_html(cf_release_version, BUILD_IDS.keys, docs_path)}<br/><br/>Not Found</body>"
     end
     halt 500, 'Error encountered retrieving API docs.'
   end
@@ -68,20 +100,29 @@ def modify_html(html_content, docs_path, cf_release_version)
     /\bhref=\"\/"/,
     "href=\"/#{cf_release_version}/"
   )
-  html_content.sub!(
-    '<body>',
-    '<body>' + version_links_html(cf_release_version, BUILD_IDS.keys, docs_path)
-  )
-  html_content
+
+  html_body = html_content.gsub(/.*<body>/, '').gsub(/<\/body>.*/, '')
+  locals = {
+    content: html_body,
+    header: version_links_html(cf_release_version, BUILD_IDS.keys, docs_path)
+  }
+
+  erb template, locals: locals
 end
 
 def version_links_html(current_version, all_versions, current_path)
   links = all_versions.sort.map do |version|
     link_for(version, current_version, current_path)
   end.join(" ")
-  "<p>#{links}</p><br/>#{link_for('release-candidate', current_version, current_path)}"
+
+  locals = {
+    links: links,
+    release_candidate_link: link_for('release-candidate', current_version, current_path),
+    current_version: current_version
+  }
+  erb header_template, locals: locals
 end
 
 def link_for(version, current_version, current_path)
-  version == current_version ? "<strong>#{version}</strong>" : "<a href=\"/#{version}#{current_path}\">#{version}</a>"
+  version == current_version ? "<li><a href='#'> <strong>#{version}</strong></a></li>" : "<li><a href=\"/#{version}#{current_path}\">#{version}</a></li>"
 end
