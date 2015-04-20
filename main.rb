@@ -59,10 +59,6 @@ get '/' do
   redirect "/#{BUILD_IDS.keys.first}/"
 end
 
-get %r{/(.+[^/])$} do |path|
-  redirect to("/#{path}/")
-end
-
 get %r{/release-candidate(/.*)?} do |docs_path|
   s3_base_url = "https://s3.amazonaws.com/cc-api-docs/release-candidate"
   docs_path = "/" unless docs_path
@@ -91,7 +87,10 @@ def fetch_html_from_s3(s3_base_url, docs_path, cf_release_version)
     html_content = URI.parse(s3_url).read
   rescue => e
     if e.message =~ /not found/i
-      halt 404, erb(template, locals: { header: version_links_html(cf_release_version, BUILD_IDS.keys, docs_path),content: "Not Found" }) #"<body>#{version_links_html(cf_release_version, BUILD_IDS.keys, docs_path)}<br/><br/>Not Found</body>"
+      halt 404, erb(template, locals: {
+        header: version_links_html(cf_release_version, BUILD_IDS.keys, docs_path),
+        content: "Not Found"
+      })
     end
     halt 500, 'Error encountered retrieving API docs.'
   end
@@ -101,7 +100,7 @@ end
 def modify_html(html_content, docs_path, cf_release_version)
   # change all local HTML links to include cf-release version
   html_content.gsub!(
-    /\bhref=\"\/"/,
+    /\bhref=\"/,
     "href=\"/#{cf_release_version}/"
   )
 
