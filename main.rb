@@ -41,6 +41,7 @@ end
 def header_template
   <<EOS
   <div class="btn-group">
+    <a class="btn btn-default" href="/"> Home </a>
     <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-expanded='false'>
         <%= current_version %> <span class='caret'></span>
     </button>
