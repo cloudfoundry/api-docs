@@ -27,6 +27,12 @@ EOF
     expect(last_response.status).to eq(302)
   end
 
+  it "redirects from /latest-release/doc to the latest final release's version of the doc" do
+    get '/latest-release/foobar'
+    expect(last_response.status).to eq(302)
+    expect(last_response.headers['Location']).to include("/#{BUILD_IDS.keys.max}/foobar")
+  end
+
   it "should pull the latest build for the master branch" do
     stub_request(:get, "https://s3.amazonaws.com/cc-api-docs/#{travis_build_id}/index.html")
       .to_return(:body => s3_api_docs_content)

@@ -64,9 +64,17 @@ def header_template
 EOS
 end
 
+def latest_release_num
+  BUILD_IDS.keys.max
+end
+
 get '/' do
   # Redirect to latest known docs
-  redirect "/#{BUILD_IDS.keys.first}/"
+  redirect "/#{latest_release_num}/"
+end
+
+get %r{/latest-release(/.*)?} do |docs_path|
+  redirect "/#{latest_release_num}#{docs_path}"
 end
 
 get %r{/release-candidate(/.*)?} do |docs_path|
