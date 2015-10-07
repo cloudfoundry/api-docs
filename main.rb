@@ -4,33 +4,33 @@ require "open-uri"
 require "json"
 
 BUILD_IDS = {
-  219 => 83029259,
-  218 => 79900811,
-  217 => 78125812,
-  215 => 74335342,
-  214 => 72920095,
-  213 => 69811325,
-  212 => 67117720,
-  211 => 65314847,
-  210 => 63419982,
-  209 => 62731063,
-  208 => 61698265,
-  207 => 58532799,
-  206 => 57530258,
-  205 => 55212903,
-  204 => 54949372,
-  203 => 53876287,
-  202 => 53235349,
-  201 => 52833659,
-  200 => 50698978,
-  199 => 50433011,
-  198 => 50144686,
-  197 => 48526348,
-  196 => 47595973,
-  195 => 44998082,
-  194 => 41997426,
-  193 => 40945705,
-  192 => 40015178
+  219 => {"BUILD_ID" => 83029259, "CC_API_VERSION" => "2.37.0"}
+  # 218 => 79900811,
+  # 217 => 78125812,
+  # 215 => 74335342,
+  # 214 => 72920095,
+  # 213 => 69811325,
+  # 212 => 67117720,
+  # 211 => 65314847,
+  # 210 => 63419982,
+  # 209 => 62731063,
+  # 208 => 61698265,
+  # 207 => 58532799,
+  # 206 => 57530258,
+  # 205 => 55212903,
+  # 204 => 54949372,
+  # 203 => 53876287,
+  # 202 => 53235349,
+  # 201 => 52833659,
+  # 200 => 50698978,
+  # 199 => 50433011,
+  # 198 => 50144686,
+  # 197 => 48526348,
+  # 196 => 47595973,
+  # 195 => 44998082,
+  # 194 => 41997426,
+  # 193 => 40945705,
+  # 192 => 40015178
 }
 
 def template
@@ -54,7 +54,7 @@ def header_template
   <div class="btn-group">
     <a class="btn btn-default" href="/<%= current_version %>/"> Home </a>
     <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-expanded='false'>
-        <strong>Version  </strong> <%= current_version %> <span class='caret'></span>
+        <strong>Version </strong> <%= current_version %> <%= current_cc_api_version %> <span class='caret'></span>
     </button>
     <ul class='dropdown-menu'>
       <%= links %>
@@ -100,7 +100,7 @@ get %r{/(\d+)(/.*)?} do |version, docs_path|
   cf_release_version = version.to_i rescue nil
   docs_path = "/" unless docs_path
 
-  travis_build_id = BUILD_IDS[cf_release_version]
+  travis_build_id = BUILD_IDS[cf_release_version]["BUILD_ID"]
   s3_base_url = "https://s3.amazonaws.com/cc-api-docs/#{travis_build_id}"
 
   html_content = fetch_html_from_s3(s3_base_url, docs_path, cf_release_version)
@@ -151,11 +151,22 @@ def version_links_html(current_version, all_versions, current_path)
     links: links,
     release_candidate_link: link_for('release-candidate', current_version, current_path),
     runtime_passed_link: link_for('runtime-passed', current_version, current_path),
-    current_version: current_version
+    current_version: current_version,
+    current_cc_api_version: get_cc_api_version(current_version)
   }
+
   erb header_template, locals: locals
 end
 
+def get_cc_api_version(version)
+  if version.is_a?(Fixnum)
+    cc_api_version = "- CC API VERSION " + BUILD_IDS[version.to_i]["CC_API_VERSION"]
+  else
+    cc_api_version = ""
+  end
+end
+
 def link_for(version, current_version, current_path)
-  version == current_version ? "<li><a href='#'> <strong>#{version}</strong></a></li>" : "<li><a href=\"/#{version}#{current_path}\">#{version}</a></li>"
+  cc_api_version = get_cc_api_version(version)
+  version == current_version ? "<li><a href='#'> <strong>#{version} #{cc_api_version}</strong> </a></li>" : "<li><a href=\"/#{version}#{current_path}\">#{version} #{cc_api_version}</a></li>"
 end
