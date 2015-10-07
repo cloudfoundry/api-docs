@@ -16,6 +16,7 @@ Instructions for adding docs for a new release
 
 
 How to Push (if you are a member of the CAPI team): 
+--------
 1. Login to lastpass - look for PWS user (Runtime) - Use those creds for the `cf login` below
 2. `$ cf api api.run.pivotal.io`
 3. `$ cf login`
