@@ -67,7 +67,6 @@ def header_template
       <%= links %>
       <li class="divider"></li>
       <%= release_candidate_link  %>
-      <%= runtime_passed_link  %>
     </ul>
     <br/>
   </div>
@@ -93,14 +92,6 @@ get %r{/release-candidate(/.*)?} do |docs_path|
 
   html_content = fetch_html_from_s3(s3_base_url, docs_path, 'release-candidate')
   modify_html(html_content, docs_path, 'release-candidate')
-end
-
-get %r{/runtime-passed(/.*)?} do |docs_path|
-  s3_base_url = "https://s3.amazonaws.com/cc-api-docs/runtime-passed"
-  docs_path = "/" unless docs_path
-
-  html_content = fetch_html_from_s3(s3_base_url, docs_path, 'runtime-passed')
-  modify_html(html_content, docs_path, 'runtime-passed')
 end
 
 get %r{/(\d+)(/.*)?} do |version, docs_path|
@@ -157,7 +148,6 @@ def version_links_html(current_version, all_versions, current_path)
   locals = {
     links: links,
     release_candidate_link: link_for('release-candidate', current_version, current_path),
-    runtime_passed_link: link_for('runtime-passed', current_version, current_path),
     current_version: current_version,
     current_cc_api_version: get_cc_api_version(current_version, true)
   }
