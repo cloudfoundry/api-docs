@@ -4,6 +4,7 @@ require "open-uri"
 require "json"
 
 API_VERSIONS = {
+  227 => {'BUILD_ID' => 98370576, 'CC_API_VERSION' => '2.46.0'},
   226 => {'BUILD_ID' => 94057175, 'CC_API_VERSION' => '2.44.0'},
   225 => {'BUILD_ID' => 90981793, 'CC_API_VERSION' => '2.43.0'},
   224 => {'BUILD_ID' => 88916778, 'CC_API_VERSION' => '2.42.0'},
