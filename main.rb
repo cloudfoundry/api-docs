@@ -2,8 +2,9 @@ require "sinatra"
 require 'net/http'
 require "open-uri"
 require "json"
-
+105020109
 API_VERSIONS = {
+  230 => {'BUILD_ID' => 105020109, 'CC_API_VERSION' => '2.48.0'},
   229 => {'BUILD_ID' => 103428675, 'CC_API_VERSION' => '2.47.0'},
   228 => {'BUILD_ID' => 102155078, 'CC_API_VERSION' => '2.47.0'},
   227 => {'BUILD_ID' => 98370576, 'CC_API_VERSION' => '2.46.0'},
