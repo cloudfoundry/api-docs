@@ -4,6 +4,7 @@ require "open-uri"
 require "json"
 105020109
 API_VERSIONS = {
+  234 => {'BUILD_ID' => 121031369, 'CC_API_VERSION' => '2.53.0'},
   233 => {'BUILD_ID' => 116758428, 'CC_API_VERSION' => '2.52.0'},
   232 => {'BUILD_ID' => 115991017, 'CC_API_VERSION' => '2.52.0'},
   231 => {'BUILD_ID' => 110284023, 'CC_API_VERSION' => '2.51.0'},
@@ -51,7 +52,7 @@ def template
   <<EOS
 <html>
 <head>
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <script src='//code.jquery.com/jquery-2.1.3.js'></script>
   <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js'></script>
 </head>
@@ -76,6 +77,10 @@ def header_template
       <%= release_candidate_link  %>
     </ul>
     <br/>
+  </div>
+  <div class="bs-callout bs-callout-default">
+    <h4><a href="http://v3-apidocs.cloudfoundry.org/" target="blank">V3 API Docs have moved</a></h4>
+    Keep in mind, V3 is still experimental and is subject to change before GA.
   </div>
 EOS
 end
