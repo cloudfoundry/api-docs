@@ -68,7 +68,7 @@ end
 def header_template
   <<EOS
   <div class="btn-group">
-    <a class="btn btn-default" href="/<%= current_version %>/"> Home </a>
+    <a class="btn btn-info" href="/<%= current_version %>/"> Home </a>
     <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-expanded='false'>
         <strong>Version </strong> <%= current_version %> <%= current_cc_api_version %> <span class='caret'></span>
     </button>
@@ -77,11 +77,9 @@ def header_template
       <li class="divider"></li>
       <%= release_candidate_link  %>
     </ul>
-    <br/>
   </div>
-  <div class="bs-callout bs-callout-default">
-    <h4><a href="http://v3-apidocs.cloudfoundry.org/" target="blank">V3 API Docs have moved</a></h4>
-    Keep in mind, V3 is still experimental and is subject to change before GA.
+  <div class="btn-group">
+    <a class="btn btn-success" href="http://v3-apidocs.cloudfoundry.org/" target="blank">Version 3 - Experimental</a>
   </div>
 EOS
 end
