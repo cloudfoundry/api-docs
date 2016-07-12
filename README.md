@@ -20,5 +20,5 @@ How to Push (if you are a member of the CAPI team):
 1. Login to lastpass - look for PWS user (Runtime) - Use those creds for the `cf login` below
 2. `$ cf api api.run.pivotal.io`
 3. `$ cf login`
-4. target cfcommunity
-5. push to 'apidocs' app
+4. Target cfcommunity
+5. Push to 'apidocs' app
