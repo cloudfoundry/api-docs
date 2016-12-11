@@ -4,6 +4,8 @@ require "open-uri"
 require "json"
 105020109
 API_VERSIONS = {
+  249 => {'CC_SHA' => '058e366818aba86f8456662b0bba95b0e35846ab', 'CC_API_VERSION' => '2.65.0'},
+  248 => {'CC_SHA' => '058e366818aba86f8456662b0bba95b0e35846ab', 'CC_API_VERSION' => '2.65.0'},
   247 => {'CC_SHA' => '058e366818aba86f8456662b0bba95b0e35846ab', 'CC_API_VERSION' => '2.65.0'},
   246 => {'CC_SHA' => '654e39c6d22f99e75ba0833236c5e6a3f12ad967', 'CC_API_VERSION' => '2.64.0'},
   245 => {'CC_SHA' => '1077b959f9472a5614f44739cdf130b16ca12a81', 'CC_API_VERSION' => '2.63.0'},
@@ -91,7 +93,7 @@ def header_template
     </ul>
   </div>
   <div class="btn-group">
-    <a class="btn btn-success" href="http://v3-apidocs.cloudfoundry.org/" target="blank">Version 3 - Experimental</a>
+    <a class="btn btn-success" href="http://v3-apidocs.cloudfoundry.org/" target="blank">Version 3</a>
   </div>
 EOS
 end
