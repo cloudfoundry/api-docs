@@ -2,8 +2,9 @@ require "sinatra"
 require 'net/http'
 require "open-uri"
 require "json"
-105020109
+
 API_VERSIONS = {
+  253 => {'CC_SHA' => '3286333334275ff19bc2396fe81f6f3402bc724b', 'CC_API_VERSION' => '2.75.0'},
   252 => {'CC_SHA' => '169c6ad289b5634ae91db02c01a5794833ee6552', 'CC_API_VERSION' => '2.74.0'},
   251 => {'CC_SHA' => 'c0be419caf3c4c0bd62253f0c3e70d905dd291b5', 'CC_API_VERSION' => '2.69.0'},
   250 => {'CC_SHA' => '43b885007cdbbf2fcc81c719bb406b44944fcb31', 'CC_API_VERSION' => '2.68.0'},
