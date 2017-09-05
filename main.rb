@@ -4,6 +4,10 @@ require "open-uri"
 require "json"
 
 API_VERSIONS = {
+  272 => {'CC_SHA' => 'b4455bb5ddc24eef3998037e1e8c6becf1afe9cc', 'CC_API_VERSION' => '2.94.0'},
+  271 => {'CC_SHA' => 'b4455bb5ddc24eef3998037e1e8c6becf1afe9cc', 'CC_API_VERSION' => '2.94.0'},
+  270 => {'CC_SHA' => 'd2dbae2838ec0aa8d8b26e8918d4036405177716', 'CC_API_VERSION' => '2.92.0'},
+  269 => {'CC_SHA' => '249e2e8aa1c92f31b1432dac26f24d79197b564d', 'CC_API_VERSION' => '2.90.0'},
   268 => {'CC_SHA' => 'eeb9c5b3d9b0821fabcc059f0c98167408fedcc5', 'CC_API_VERSION' => '2.89.0'},
   267 => {'CC_SHA' => '978de5819d21ba18f0e8baa5122af731b376ea5f', 'CC_API_VERSION' => '2.86.0'},
   266 => {'CC_SHA' => 'c11841b5675aaa47ccd2a70b742eb25601d26d2c', 'CC_API_VERSION' => '2.85.0'},
