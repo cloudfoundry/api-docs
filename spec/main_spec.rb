@@ -30,7 +30,7 @@ EOF
   it "redirects from /latest-release/doc to the latest final release's version of the doc" do
     get '/latest-release/foobar'
     expect(last_response.status).to eq(302)
-    expect(last_response.headers['Location']).to include("/#{API_VERSIONS.keys.max}/foobar")
+    expect(last_response.headers['Location']).to include("/#{CFD_VERSIONS.first}/foobar")
   end
 
   it "should pull the latest build for the master branch" do
