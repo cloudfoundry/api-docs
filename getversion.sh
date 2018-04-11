@@ -10,4 +10,4 @@ apiversion=$(git -C /Users/pivotal/workspace/capi-release/src/cloud_controller_n
 #echo $ccversion
 #echo $apiversion
 
-echo "  '$(echo ${version} | cut -c 2-)' => {'CC_SHA' => '${ccversion}', 'CC_API_VERSION' => '${apiversion}'},"
+echo "{\"CF_VERSION\": \"$(echo ${version} | cut -c 2-)\", \"CC_SHA\": \"${ccversion}\", \"CC_API_VERSION\": \"${apiversion}\"},"
