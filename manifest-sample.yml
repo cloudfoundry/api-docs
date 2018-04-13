@@ -1,7 +1,7 @@
 ---
 applications:
-- name: apidocs
+- name: apidocs-testing
   memory: 128MB
-  instances: 5
-  host: apidocs
+  instances: 1
+  host: apidocs-testing
   path: .
