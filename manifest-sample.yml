@@ -1,7 +1,7 @@
 ---
 applications:
 - name: apidocs
-  memory: 128MB
+  memory: 128M
   instances: 5
-  host: apidocs
-  path: .
+  routes:
+    - route: apidocs.cloudfoundry.org
