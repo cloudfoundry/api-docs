@@ -135,8 +135,9 @@ end
 
 def modify_html(html_content, docs_path, cf_release_version)
   # change all local HTML links to include cf-release version
+  # unless they begin with http
   html_content.gsub!(
-    /\bhref=\"/,
+    /\bhref=\"(?!http)/,
     "href=\"/#{cf_release_version}/"
   )
 
