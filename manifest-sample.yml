@@ -5,4 +5,4 @@ applications:
   instances: 5
   path: .
   routes:
-    - route: testapidocs.cfapps.io
+    - route: testapidocs.cloudfoundry.org
