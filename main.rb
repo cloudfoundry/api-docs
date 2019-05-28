@@ -54,6 +54,10 @@ get '/' do
   redirect "/#{latest_release_num}/"
 end
 
+get '/hello' do
+  return "hello #1\n"
+end
+
 get %r{/latest-release(/.*)?} do |docs_path|
   redirect "/#{latest_release_num}#{docs_path}"
 end
