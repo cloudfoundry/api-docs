@@ -55,7 +55,7 @@ get '/' do
 end
 
 get '/hello' do
-  return "hello #1\n"
+  return "hello #2\n"
 end
 
 get %r{/latest-release(/.*)?} do |docs_path|
