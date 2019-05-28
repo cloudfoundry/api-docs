@@ -1,8 +1,8 @@
 ---
 applications:
-- name: apidocs
+- name: testapidocs
   memory: 128M
   instances: 5
   path: .
   routes:
-    - route: apidocs.cloudfoundry.org
+    - route: testapidocs.cfapps.io
