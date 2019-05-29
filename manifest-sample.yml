@@ -3,7 +3,7 @@ applications:
 - name: testapidocs
   memory: 128M
   instances: 5
-  path: api-docs-test
+  path: .
   buildpacks:
   - ruby_buildpack
   routes:
