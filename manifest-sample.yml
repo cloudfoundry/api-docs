@@ -4,5 +4,7 @@ applications:
   memory: 128M
   instances: 5
   path: .
+  buildpacks:
+  - ruby_buildpack
   routes:
     - route: testapidocs.cloudfoundry.org
