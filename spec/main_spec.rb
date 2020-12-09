@@ -35,7 +35,7 @@ EOF
     expect(last_response.headers['Location']).to include("/#{latest_release_version}/foobar")
   end
 
-  it 'should pull the latest build for the master branch' do
+  it 'should pull the latest build for the main branch' do
     stub_request(:get, "https://s3.amazonaws.com/cc-api-docs/#{travis_build_id}/index.html")
       .to_return(:body => s3_api_docs_content)
 
