@@ -1,5 +1,10 @@
 [
   {
+    "CF_VERSION": "23.2.0",
+    "CC_SHA": "075c303994c71a83f741ff2d88d8d003f2ea310f",
+    "CC_API_VERSION": "2.193.0"
+  },
+  {
     "CF_VERSION": "23.1.0",
     "CC_SHA": "075c303994c71a83f741ff2d88d8d003f2ea310f",
     "CC_API_VERSION": "2.193.0"
